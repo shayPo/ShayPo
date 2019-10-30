@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">ShayPo</string>
+    <string name="search_hint">What to search?</string>
+    <string name="index_key">index</string>
+    <string name="data_updated">Data updated</string>
+    <string name="local_data_base_name">search_data_base</string>
+</resources>
