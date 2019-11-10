@@ -7,5 +7,10 @@ import androidx.room.PrimaryKey
 @Entity
 data class Search(
     @PrimaryKey val mSearchWord : String,
-    val mResults: String
+    var mResults : String
     )
+{
+    companion object{
+        val NEXT_RESULT = "&&NEXT&&"
+    }
+}

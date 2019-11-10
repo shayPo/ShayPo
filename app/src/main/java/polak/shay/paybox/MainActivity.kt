@@ -32,7 +32,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun init() {
-        //TODO: fix the icon , don't use SearchView
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeAsUpIndicator(R.drawable.search_icon5)
 
@@ -69,8 +68,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         return super.onOptionsItemSelected(item)
     }
 
+    //on image click
     override fun onClick(v: View?) {
-//       mViewModel.onImageClick(v?.tag as Int)
         val intent = Intent(this, DisplayActivity::class.java)
         intent.putExtra(getString(R.string.index_key), v?.tag as Int)
         startActivity(intent)

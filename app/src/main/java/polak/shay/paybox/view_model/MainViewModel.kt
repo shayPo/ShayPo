@@ -67,7 +67,7 @@ class MainViewModel : ViewModel(), MainViewModelAPI, Observer {
         {
             if(mImageResults!!.hits.size < mImageResults!!.total!!) {
                 mLoading = true
-                var page = mImageResults!!.hits.size.div(R.integer.items_in_page)
+                var page = mImageResults!!.hits.size.div(20)
                 page++
                 Data.getInstance().search(mSearchWord, page, this)
             }
@@ -78,18 +78,21 @@ class MainViewModel : ViewModel(), MainViewModelAPI, Observer {
         o?.deleteObservers()
         mLoading = false
 
+        if(arg == null) { return }
+
         val data = arg as Results
         if( mImageResults == null){
             mImageResults = data
         }
         else{
-            var a = mImageResults?.hits?.toMutableList()
-            if(a?.addAll(data?.hits)!!)
-            {
-                mImageResults?.hits = a?.toList()
-                Data.getInstance().updateCurrentData(mImageResults!!)
-            }
+//            var a = mImageResults?.hits?.toMutableList()
+//            if(a?.addAll(data?.hits)!!)
+//            {
+//                mImageResults?.hits = a?.toList()
+//            }
+            mImageResults?.hits?.addAll(arg?.hits)
         }
+        Data.getInstance().updateCurrentData(mImageResults!!)
 
         mImageHits.postValue(mImageResults?.hits)
     }

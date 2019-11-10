@@ -1,10 +1,8 @@
 package polak.shay.paybox.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import polak.shay.paybox.R
 
-@Entity
+
 data class Hit(
     val comments: Int?,
     val downloads: Int?,
@@ -28,4 +26,74 @@ data class Hit(
     val webformatHeight: Int?,
     val webformatURL: String?,
     val webformatWidth: Int?
-)
+) {
+
+    var smallUrl : Any? = null
+        get() {
+            if (field == null) {
+                initSmall()
+            }
+            return field
+        }
+        private set
+/*
+    var largeUrl : Any? = null
+        get() {
+            if (field == null) {
+                initLarge()
+            }
+            return field
+        }
+        private set
+
+    private fun initLarge() {
+        if(largeImageURL.isNullOrEmpty())
+        {
+            if(webformatURL.isNullOrEmpty())
+            {
+                if(userImageURL.isNullOrEmpty())
+                {
+                    largeUrl = R.drawable.no_image
+                }
+                else
+                {
+                    largeUrl = userImageURL
+                }
+            }
+            else
+            {
+                largeUrl = webformatURL
+            }
+        }
+        else
+        {
+            largeUrl = largeImageURL
+        }
+    }
+*/
+
+    private fun initSmall() {
+        if(userImageURL.isNullOrEmpty())
+        {
+            if(webformatURL.isNullOrEmpty())
+            {
+               if(largeImageURL.isNullOrEmpty())
+               {
+                   smallUrl = R.drawable.no_image
+               }
+               else
+               {
+                   smallUrl = largeImageURL
+               }
+            }
+            else
+            {
+                smallUrl = webformatURL
+            }
+        }
+        else
+        {
+            smallUrl = userImageURL
+        }
+    }
+}

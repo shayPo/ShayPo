@@ -1,5 +1,6 @@
 package polak.shay.paybox.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,13 +13,10 @@ import java.lang.ref.WeakReference
 
 class ImageAdapter(clickListener: View.OnClickListener?) : RecyclerView.Adapter<ImageAdapter.Holder>() {
 
-    private var mItemSize : ViewGroup.LayoutParams? = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    private var mItemSize: ViewGroup.LayoutParams? =
+        ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     private val mHits by lazy { mutableListOf<Hit>() }
-    private lateinit var mClickListener : WeakReference<View.OnClickListener?>
-
-    init {
-            mClickListener = WeakReference(clickListener)
-    }
+    private val mClickListener: WeakReference<View.OnClickListener?> by lazy { WeakReference(clickListener) }
 
     fun setData(newData: List<Hit>) {
         mHits.clear()
@@ -33,7 +31,9 @@ class ImageAdapter(clickListener: View.OnClickListener?) : RecyclerView.Adapter<
         return Holder(mClickListener.get(), view)
     }
 
-    override fun getItemCount(): Int { return if (mHits.isNullOrEmpty()) { 0 } else mHits!!.size }
+    override fun getItemCount(): Int {
+        return if (mHits.isNullOrEmpty()) { 0 } else mHits.size
+    }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.setup(mHits?.get(position), position)
@@ -45,12 +45,17 @@ class ImageAdapter(clickListener: View.OnClickListener?) : RecyclerView.Adapter<
 
     class Holder(clickListener: View.OnClickListener?, val mView: View) : RecyclerView.ViewHolder(mView) {
 
-        init { mView.setOnClickListener(clickListener) }
+        init {
+            mView.setOnClickListener(clickListener)
+        }
 
-        fun setup(data: Hit?, index : Int) {
-            val url = data?.userImageURL
+        fun setup(data: Hit?, index: Int) {
             mView.tag = index
-            Picasso.get().load(url).into(mView?.hit_image)
+            when(val url = data?.smallUrl)
+            {
+                is String -> Picasso.get().load(url).into(mView.hit_image)
+                is Int -> Picasso.get().load(url).into(mView.hit_image)
+            }
         }
     }
 }

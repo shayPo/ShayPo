@@ -1,7 +1,7 @@
 package polak.shay.paybox.model
 
 data class Results(
-    var hits: List<Hit>,
+    var hits: MutableList<Hit>,
     val total: Int?,
     val totalHits: Int?
 )

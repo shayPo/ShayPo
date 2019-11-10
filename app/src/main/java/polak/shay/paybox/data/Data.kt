@@ -5,8 +5,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.sqlite.db.SupportSQLiteDatabase
 import polak.shay.paybox.data.local.AppDatabase
 import polak.shay.paybox.data.network.RestApi
 import polak.shay.paybox.data.network.Retrofit
@@ -18,6 +16,7 @@ import retrofit2.Response
 import java.util.*
 import com.google.gson.Gson
 import polak.shay.paybox.R
+import polak.shay.paybox.model.Hit
 
 
 class Data private constructor() : Callback<Results>, Observable() {
@@ -39,32 +38,39 @@ class Data private constructor() : Callback<Results>, Observable() {
         val name = context.getString(R.string.local_data_base_name)
         mLocalDataBase = Room.databaseBuilder(
             context,
-            AppDatabase::class.java, "$name"
-        ).build()
+            AppDatabase::class.java, name
+        ).fallbackToDestructiveMigration().build()
     }
 
     fun search(find: String, page: Int, observer: Observer) {
         addObserver(observer)
         mSearching = find
         if (page == 1 && mLocalDataBase != null) {
-            if (mLocalDataBase!!.isOpen) {
-                mHandler.post {
-                    val data = mLocalDataBase?.searchDao()?.searchLocalDataBase(find)
-                    mMainHandler.post {
-                        if (data == null) {
-                            val networkFind = find.replace(" ", "+")
-                            mRetrofitInterface.getImages(key, networkFind, page).enqueue(this)
+            mHandler.post {
+                val data = mLocalDataBase?.searchDao()?.searchLocalDataBase(find)
+                if (data != null) {
+                    val gson = Gson()
+                    var results: Results? = null
+                    val resultsList = data.mResults.split(Search.NEXT_RESULT)
+                    resultsList.forEach {
+                        val json = gson.fromJson<Results>(it, Results::class.java)
+                        if (results == null) {
+                            results = json
                         } else {
-                            val gson = Gson()
-                            val json = gson.fromJson<Results>(data.mResults, Results::class.java)
-                            hasChanged()
-                            notifyObservers(json)
+                            results!!.hits.addAll(json.hits)
                         }
                     }
+                    mMainHandler.post {
+                        setChanged()
+                        notifyObservers(results)
+                    }
+                } else {
+                    mMainHandler.post {
+                        val networkFind = find.replace(" ", "+")
+                        mRetrofitInterface.getImages(key, networkFind, page).enqueue(this)
+
+                    }
                 }
-            } else {
-                val networkFind = find.replace(" ", "+")
-                mRetrofitInterface.getImages(key, networkFind, page).enqueue(this)
             }
         } else {
             val networkFind = find.replace(" ", "+")
@@ -73,22 +79,32 @@ class Data private constructor() : Callback<Results>, Observable() {
     }
 
     override fun onFailure(call: Call<Results>, t: Throwable) {
-
+        setChanged()
+        notifyObservers(null)
     }
 
     override fun onResponse(call: Call<Results>, response: Response<Results>) {
         if (response.body() != null) {
             mHandler.post {
-                if(mLocalDataBase!!.isOpen) {
-                    val gson = Gson()
-                    val json = gson.toJson(response.body())
-                    val tep = Search(mSearching, json.toString())
-                    mLocalDataBase?.searchDao()?.insertResult(tep)
+                val gson = Gson()
+                val json = gson.toJson(response.body())
+                var data = mLocalDataBase?.searchDao()?.searchLocalDataBase(mSearching)
+                if (data == null) {
+                    data = Search(mSearching, json.toString())
+                } else {
+                    val builder = StringBuilder(data.mResults)
+                    builder.append(Search.NEXT_RESULT)
+                    builder.append(json.toString())
+                    data.mResults = builder.toString()
                 }
+                mLocalDataBase?.searchDao()?.insertResult(data)
                 mSearching = ""
             }
             setChanged()
             notifyObservers(response.body())
+        } else {
+            setChanged()
+            notifyObservers(null)
         }
     }
 
@@ -96,9 +112,13 @@ class Data private constructor() : Callback<Results>, Observable() {
         super.notifyObservers(arg)
     }
 
-    fun updateCurrentData(displayData : Results) { mCurrentData = displayData }
+    fun updateCurrentData(displayData: Results) {
+        mCurrentData = displayData
+    }
 
-    fun getCurrentData(): Results? { return mCurrentData }
+    fun getCurrentData(): Results? {
+        return mCurrentData
+    }
 
     companion object {
         private val mInstance: Data by lazy { Data() }
