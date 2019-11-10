@@ -108,10 +108,6 @@ class Data private constructor() : Callback<Results>, Observable() {
         }
     }
 
-    override fun notifyObservers(arg: Any?) {
-        super.notifyObservers(arg)
-    }
-
     fun updateCurrentData(displayData: Results) {
         mCurrentData = displayData
     }

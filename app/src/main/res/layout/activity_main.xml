@@ -12,6 +12,7 @@
 
     <EditText
             android:inputType="text"
+            android:digits="abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             android:hint="@string/search_hint"
             android:autofillHints="@string/search_hint"
             android:id="@+id/to_search"
